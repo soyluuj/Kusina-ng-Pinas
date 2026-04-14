@@ -38,8 +38,15 @@ public class LoginUI {
 
                 if (UserDAO.login(input, pass)) {
                     JOptionPane.showMessageDialog(frame, "Login Successful!");
+                    
+                    // Get the user ID
+                    int userId = UserDAO.getUserId(input);
+                    
                     frame.dispose(); // Close login window
-                    openMainApplication(); // Open your main app here
+                    
+                    // ✅ THIS OPENS YOUR ACTUAL HOME PAGE WITH RECIPE TABLE
+                    SwingUtilities.invokeLater(() -> new HomePageUI(input, userId));
+                    
                 } else {
                     JOptionPane.showMessageDialog(frame, "Invalid username/email or password.");
                 }
@@ -52,15 +59,5 @@ public class LoginUI {
 
             frame.setVisible(true);
         });
-    }
-    
-    // Placeholder
-    private static void openMainApplication() {
-        JFrame mainFrame = new JFrame("Main Application");
-        mainFrame.setSize(400, 300);
-        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainFrame.setLocationRelativeTo(null);
-        mainFrame.add(new JLabel("Welcome to the Main Application!", SwingConstants.CENTER));
-        mainFrame.setVisible(true);
     }
 }
