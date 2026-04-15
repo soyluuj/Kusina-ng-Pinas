@@ -1,6 +1,7 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.List;
 
 public class HomePageUI extends JFrame {
 
@@ -8,6 +9,7 @@ public class HomePageUI extends JFrame {
     private int loggedInUserId;
     private JTable recipeTable;
     private DefaultTableModel tableModel;
+    private JComboBox<String> regionFilterCombo;
 
     public HomePageUI(String username, int userId) {
         this.loggedInUsername = username;
@@ -41,9 +43,9 @@ public class HomePageUI extends JFrame {
         // Button Panel (at the top of center area)
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
 
-        JButton postRecipeBtn = new JButton("📝 Post Recipe");
-        JButton updateRecipeBtn = new JButton("✏️ Update Recipe");
-        JButton deleteRecipeBtn = new JButton("🗑️ Delete Recipe");
+        JButton postRecipeBtn = new JButton("Post Recipe");
+        JButton updateRecipeBtn = new JButton("Update Recipe");
+        JButton deleteRecipeBtn = new JButton("Delete Recipe");
 
         styleButton(postRecipeBtn, new Color(46, 204, 113));
         styleButton(updateRecipeBtn, new Color(52, 152, 219));
@@ -60,7 +62,7 @@ public class HomePageUI extends JFrame {
         deleteRecipeBtn.addActionListener(e -> {
             new DeleteRecipeUI(this, loggedInUserId);
         });
-        
+
         buttonPanel.add(postRecipeBtn);
         buttonPanel.add(updateRecipeBtn);
         buttonPanel.add(deleteRecipeBtn);
@@ -71,7 +73,19 @@ public class HomePageUI extends JFrame {
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setBorder(BorderFactory.createTitledBorder("All Recipes"));
 
-        String[] columns = {"Recipe Name", "Author", "Difficulty", "Prep Time", "Cook Time", "Date Added"};
+        // ===== ADD FILTER PANEL HERE (BEFORE THE TABLE) =====
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        filterPanel.add(new JLabel("Filter by Region:"));
+        regionFilterCombo = new JComboBox<>();
+        regionFilterCombo.addItem("All Regions");
+        loadRegionFilter();
+        regionFilterCombo.addActionListener(e -> filterRecipesByRegion());
+        filterPanel.add(regionFilterCombo);
+        
+        tablePanel.add(filterPanel, BorderLayout.NORTH);
+
+        //table
+        String[] columns = {"Recipe Name", "Author", "Region", "Difficulty", "Prep Time", "Cook Time", "Date Added"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -84,12 +98,13 @@ public class HomePageUI extends JFrame {
         recipeTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         recipeTable.getTableHeader().setBackground(new Color(240, 240, 240));
 
-        recipeTable.getColumnModel().getColumn(0).setPreferredWidth(200);
-        recipeTable.getColumnModel().getColumn(1).setPreferredWidth(120);
-        recipeTable.getColumnModel().getColumn(2).setPreferredWidth(80);
-        recipeTable.getColumnModel().getColumn(3).setPreferredWidth(80);
-        recipeTable.getColumnModel().getColumn(4).setPreferredWidth(80);
-        recipeTable.getColumnModel().getColumn(5).setPreferredWidth(100);
+        recipeTable.getColumnModel().getColumn(0).setPreferredWidth(180); // Recipe Name
+        recipeTable.getColumnModel().getColumn(1).setPreferredWidth(100); // Author
+        recipeTable.getColumnModel().getColumn(2).setPreferredWidth(120); // Region
+        recipeTable.getColumnModel().getColumn(3).setPreferredWidth(80);  // Difficulty
+        recipeTable.getColumnModel().getColumn(4).setPreferredWidth(70);  // Prep Time
+        recipeTable.getColumnModel().getColumn(5).setPreferredWidth(70);  // Cook Time
+        recipeTable.getColumnModel().getColumn(6).setPreferredWidth(90);  // Date Added
 
         JScrollPane scrollPane = new JScrollPane(recipeTable);
         tablePanel.add(scrollPane, BorderLayout.CENTER);
@@ -119,26 +134,25 @@ public class HomePageUI extends JFrame {
         button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
     }
 
-    private void placeholderAction(String feature) {
-        JOptionPane.showMessageDialog(this,
-                "✨ " + feature + " feature coming soon!",
-                "Coming Soon",
-                JOptionPane.INFORMATION_MESSAGE);
+    private void loadRegionFilter() {
+        List<Region> regions = RegionDAO.getAllRegions();
+        for (Region region : regions) {
+            regionFilterCombo.addItem(region.getName());
+        }
     }
 
-    public void refreshRecipeList() {
+    private void filterRecipesByRegion() {
+        String selectedRegion = (String) regionFilterCombo.getSelectedItem();
         tableModel.setRowCount(0);
-
-        java.util.List<Recipe> recipes = RecipeDAO.getAllRecipes();
         
-        if (recipes.isEmpty()) {
-            // Add a placeholder row if no recipes exist
-            tableModel.addRow(new Object[]{"No recipes yet", "-", "-", "-", "-", "-"});
-        } else {
-            for (Recipe recipe : recipes) {
+        List<Recipe> allRecipes = RecipeDAO.getAllRecipes();
+        
+        for (Recipe recipe : allRecipes) {
+            if (selectedRegion.equals("All Regions") || recipe.getRegion().equals(selectedRegion)) {
                 Object[] row = {
                         recipe.getName(),
                         recipe.getAuthorName(),
+                        recipe.getRegion(),
                         recipe.getDifficulty(),
                         recipe.getPrepTime() + " min",
                         recipe.getCookTime() + " min",
@@ -147,6 +161,10 @@ public class HomePageUI extends JFrame {
                 tableModel.addRow(row);
             }
         }
+    }
+
+    public void refreshRecipeList() {
+        filterRecipesByRegion(); // This will refresh with current filter
     }
 
     private void logout() {

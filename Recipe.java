@@ -8,10 +8,11 @@ public class Recipe {
     private String difficulty;
     private int userId;
     private String authorName;
+    private String region;
 
     // Constructor
     public Recipe(int recipeId, String name, String description, String dateCreated,
-                  int prepTime, int cookTime, String difficulty, int userId, String authorName) {
+                  int prepTime, int cookTime, String difficulty, int userId, String authorName, String region) {
         this.recipeId = recipeId;
         this.name = name;
         this.description = description;
@@ -21,6 +22,7 @@ public class Recipe {
         this.difficulty = difficulty;
         this.userId = userId;
         this.authorName = authorName;
+        this.region = region;
     }
 
     // Getters
@@ -37,6 +39,7 @@ public class Recipe {
     }
     public int getUserId() { return userId; }
     public String getAuthorName() { return authorName; }
+    public String getRegion() { return region != null ? region : "Unknown"; }
     
     public int getTotalTime() { 
         return prepTime + cookTime; 

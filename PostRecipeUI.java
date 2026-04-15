@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class PostRecipeUI extends JDialog {
 
@@ -8,6 +9,7 @@ public class PostRecipeUI extends JDialog {
     private JTextField prepTimeField;
     private JTextField cookTimeField;
     private JComboBox<String> difficultyCombo;
+    private JComboBox<RegionItem> regionCombo;
     
     private int userId;
     private HomePageUI parent;
@@ -97,6 +99,21 @@ public class PostRecipeUI extends JDialog {
 
         add(formPanel, BorderLayout.CENTER);
 
+        // ----- Region -----
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weighty = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        formPanel.add(new JLabel("Recipe Origin:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridwidth = 2;
+        regionCombo = new JComboBox<>();
+        loadRegions();
+        formPanel.add(regionCombo, gbc);
+
         // ===== BUTTON PANEL =====
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 
@@ -116,6 +133,13 @@ public class PostRecipeUI extends JDialog {
         add(buttonPanel, BorderLayout.SOUTH);
 
         setVisible(true);
+    }
+
+    private void loadRegions() {
+        List<Region> regions = RegionDAO.getAllRegions();
+        for (Region region : regions) {
+            regionCombo.addItem(new RegionItem(region.getId(), region.getName()));
+        }
     }
 
     private void postRecipe() {
@@ -146,8 +170,12 @@ public class PostRecipeUI extends JDialog {
             return;
         }
 
+        RegionItem selectedRegion = (RegionItem) regionCombo.getSelectedItem();
+        int regionId = selectedRegion != null ? selectedRegion.regionId : 17; // Default to Unknown
+    
         // Save to database
-        boolean success = RecipeDAO.addRecipe(name, description, prepTime, cookTime, difficulty, userId);
+        boolean success = RecipeDAO.addRecipe(name, description, prepTime, cookTime, difficulty, userId, regionId);
+
 
         if (success) {
             JOptionPane.showMessageDialog(this, "Recipe posted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -157,4 +185,20 @@ public class PostRecipeUI extends JDialog {
             JOptionPane.showMessageDialog(this, "Failed to post recipe. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+    private static class RegionItem {
+        int regionId;
+        String regionName;
+        
+        RegionItem(int regionId, String regionName) {
+            this.regionId = regionId;
+            this.regionName = regionName;
+        }
+        
+        @Override
+        public String toString() {
+            return regionName;
+        }
+    }
+
 }

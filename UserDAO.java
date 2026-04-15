@@ -7,29 +7,30 @@ public class UserDAO {
     static String password = "8227";
 
     // Registration/Signup
-    public static boolean register(String email, String username, String pass, String birthdate) {
-        String sql = "INSERT INTO users(email, username, password, birthdate) VALUES (?, ?, ?, ?)";
+    // Update this method in UserDAO.java
+    public static boolean register(String email, String username, String pass, String birthdate, int regionId) {
+        String sql = "INSERT INTO users(email, username, password, birthdate, region_id) VALUES (?, ?, ?, ?, ?)";
         
         try (Connection conn = DriverManager.getConnection(url, user, password);
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, email);
             ps.setString(2, username);
             ps.setString(3, pass);
             
-            // Validate date format before setting
             try {
                 ps.setDate(4, Date.valueOf(birthdate));
             } catch (IllegalArgumentException ex) {
                 System.err.println("Invalid date format: " + birthdate);
                 return false;
             }
+            
+            ps.setInt(5, regionId);
 
             int rowsAffected = ps.executeUpdate();
             return rowsAffected > 0;
 
         } catch (SQLException e) {
-            // Check for duplicate key violation (PostgreSQL error code 23505)
             if (e.getSQLState().equals("23505")) {
                 System.err.println("Duplicate username or email: " + e.getMessage());
             } else {

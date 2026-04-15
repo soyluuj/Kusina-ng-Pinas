@@ -12,15 +12,18 @@ public class RecipeDAO {
         List<Recipe> recipes = new ArrayList<>();
 
         String sql = "SELECT r.recipe_id, r.name, r.description, " +
-                     "TO_CHAR(r.date_created, 'YYYY-MM-DD') as date_created, " +
-                     "r.prep_time, r.cook_time, r.difficulty, r.user_id, u.username " +
-                     "FROM recipes r " +
-                     "JOIN users u ON r.user_id = u.id " +
-                     "ORDER BY r.date_created DESC";
+                    "TO_CHAR(r.date_created, 'YYYY-MM-DD') AS date_created, " +
+                    "r.prep_time, r.cook_time, r.difficulty, r.user_id, u.username, " +
+                    "COALESCE(reg.region_name, 'Unknown') AS region_name " +
+                    "FROM recipes r " +
+                    "JOIN users u ON r.user_id = u.id " +
+                    "LEFT JOIN regions reg ON r.region_id = reg.region_id " +
+                    "ORDER BY r.date_created DESC";
+
 
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 Recipe recipe = new Recipe(
@@ -32,7 +35,8 @@ public class RecipeDAO {
                         rs.getInt("cook_time"),
                         rs.getString("difficulty"),
                         rs.getInt("user_id"),
-                        rs.getString("username")
+                        rs.getString("username"),
+                        rs.getString("region_name")
                 );
                 recipes.add(recipe);
             }
@@ -46,9 +50,9 @@ public class RecipeDAO {
     
     // Add this method to RecipeDAO.java
     public static boolean addRecipe(String name, String description, int prepTime, 
-                                    int cookTime, String difficulty, int userId) {
-        String sql = "INSERT INTO recipes (name, description, prep_time, cook_time, difficulty, user_id, date_created) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+                                    int cookTime, String difficulty, int userId, int regionId) {
+        String sql = "INSERT INTO recipes (name, description, prep_time, cook_time, difficulty, user_id, region_id, date_created) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
 
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
             PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -59,6 +63,7 @@ public class RecipeDAO {
             ps.setInt(4, cookTime);
             ps.setString(5, difficulty);
             ps.setInt(6, userId);
+            ps.setInt(7, regionId);  // This line was causing the error
 
             int rowsAffected = ps.executeUpdate();
             return rowsAffected > 0;
@@ -68,7 +73,6 @@ public class RecipeDAO {
             return false;
         }
     }
-
     // Get recipes created by a specific user (for update/delete dropdown)
     public static List<Recipe> getRecipesByUser(int userId) {
         List<Recipe> recipes = new ArrayList<>();
@@ -97,7 +101,8 @@ public class RecipeDAO {
                             rs.getInt("cook_time"),
                             rs.getString("difficulty"),
                             rs.getInt("user_id"),
-                            rs.getString("username")
+                            rs.getString("username"),
+                            rs.getString("region_name")
                     );
                     recipes.add(recipe);
                 }
@@ -135,7 +140,8 @@ public class RecipeDAO {
                             rs.getInt("cook_time"),
                             rs.getString("difficulty"),
                             rs.getInt("user_id"),
-                            rs.getString("username")
+                            rs.getString("username"),
+                            rs.getString("region_name")
                     );
                 }
             }
