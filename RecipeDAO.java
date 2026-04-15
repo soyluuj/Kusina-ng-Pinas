@@ -172,4 +172,69 @@ public class RecipeDAO {
             return false;
         }
     }
+
+    // Delete a recipe (with ownership verification)
+    public static boolean deleteRecipe(int recipeId, int userId) {
+        // First, verify this recipe belongs to the user
+        String checkSql = "SELECT user_id, name FROM recipes WHERE recipe_id = ?";
+        
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+            PreparedStatement checkPs = conn.prepareStatement(checkSql)) {
+            
+            checkPs.setInt(1, recipeId);
+            ResultSet rs = checkPs.executeQuery();
+            
+            if (rs.next()) {
+                int ownerId = rs.getInt("user_id");
+                if (ownerId != userId) {
+                    // User trying to delete someone else's recipe!
+                    System.err.println("Security: User " + userId + " attempted to delete recipe " + recipeId + " owned by " + ownerId);
+                    return false;
+                }
+            } else {
+                return false; // Recipe not found
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+        
+        // If we get here, user owns the recipe - proceed with delete
+        String sql = "DELETE FROM recipes WHERE recipe_id = ?";
+        
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, recipeId);
+            
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Get recipe name by ID (for confirmation message)
+    public static String getRecipeNameById(int recipeId) {
+        String sql = "SELECT name FROM recipes WHERE recipe_id = ?";
+        
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, recipeId);
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getString("name");
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return null;
+    }
 }

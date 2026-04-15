@@ -56,9 +56,11 @@ public class HomePageUI extends JFrame {
         updateRecipeBtn.addActionListener(e -> {
             new UpdateRecipeUI(this, loggedInUserId);
         });
-        
-        deleteRecipeBtn.addActionListener(e -> placeholderAction("Delete Recipe"));
 
+        deleteRecipeBtn.addActionListener(e -> {
+            new DeleteRecipeUI(this, loggedInUserId);
+        });
+        
         buttonPanel.add(postRecipeBtn);
         buttonPanel.add(updateRecipeBtn);
         buttonPanel.add(deleteRecipeBtn);
