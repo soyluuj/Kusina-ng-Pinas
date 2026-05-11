@@ -6,13 +6,11 @@ public class UserDAO {
     static String user = "admin";
     static String password = "8227";
 
-    // Registration/Signup
-    // Update this method in UserDAO.java
     public static boolean register(String email, String username, String pass, String birthdate, int regionId) {
         String sql = "INSERT INTO users(email, username, password, birthdate, region_id) VALUES (?, ?, ?, ?, ?)";
         
         try (Connection conn = DriverManager.getConnection(url, user, password);
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, email);
             ps.setString(2, username);
@@ -40,7 +38,6 @@ public class UserDAO {
         }
     }
 
-    // Login
     public static boolean login(String input, String pass) {
         String sql = "SELECT * FROM users WHERE (email = ? OR username = ?) AND password = ?";
         
@@ -52,7 +49,7 @@ public class UserDAO {
             ps.setString(3, pass);
 
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next(); // true if match found
+                return rs.next();
             }
 
         } catch (SQLException e) {
@@ -60,11 +57,12 @@ public class UserDAO {
             return false;
         }
     }
+    
     public static int getUserId(String usernameOrEmail) {
         String sql = "SELECT id FROM users WHERE username = ? OR email = ?";
         
         try (Connection conn = DriverManager.getConnection(url, user, password);
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             
             ps.setString(1, usernameOrEmail);
             ps.setString(2, usernameOrEmail);
@@ -79,6 +77,6 @@ public class UserDAO {
             e.printStackTrace();
         }
         
-        return -1; // User not found
+        return -1;
     }
 }

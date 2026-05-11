@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ItemEvent;
 import java.util.List;
 
 public class DeleteRecipeUI extends JDialog {
@@ -18,79 +17,83 @@ public class DeleteRecipeUI extends JDialog {
         this.userId = userId;
         this.userRecipes = RecipeDAO.getRecipesByUser(userId);
 
-        // Dialog Setup
-        setSize(450, 250);
+        setSize(450, 300);
         setLocationRelativeTo(parent);
         setLayout(new BorderLayout(10, 10));
+        getContentPane().setBackground(AppTheme.BACKGROUND);
 
-        // ===== MAIN PANEL =====
+        // Title
+        JPanel titlePanel = new JPanel();
+        titlePanel.setBackground(AppTheme.DANGER);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        JLabel titleLabel = new JLabel("Delete Recipe");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        titleLabel.setForeground(Color.WHITE);
+        titlePanel.add(titleLabel);
+        add(titlePanel, BorderLayout.NORTH);
+
+        // Main Panel
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBackground(AppTheme.BACKGROUND);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
 
-        // Title label
-        JLabel titleLabel = new JLabel("Select Recipe to Delete");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        mainPanel.add(titleLabel);
+        JLabel selectLabel = new JLabel("Select Recipe to Delete:");
+        selectLabel.setFont(AppTheme.HEADER_FONT);
+        selectLabel.setForeground(AppTheme.TEXT_DARK);
+        selectLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        mainPanel.add(selectLabel);
         mainPanel.add(Box.createVerticalStrut(15));
 
-        // Recipe selection panel
-        JPanel selectionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        selectionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
         recipeCombo = new JComboBox<>();
-        recipeCombo.setPreferredSize(new Dimension(350, 30));
+        recipeCombo.setPreferredSize(new Dimension(350, 35));
+        recipeCombo.setMaximumSize(new Dimension(350, 35));
+        recipeCombo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        AppTheme.styleComboBox(recipeCombo);
         
-        // Populate combo box with user's recipes
         if (userRecipes.isEmpty()) {
             recipeCombo.addItem(new RecipeItem(null, "You have no recipes to delete"));
             recipeCombo.setEnabled(false);
         } else {
             for (Recipe recipe : userRecipes) {
                 recipeCombo.addItem(new RecipeItem(recipe,
-                        recipe.getName() + " (" + recipe.getDifficulty() + ")"));
+                    recipe.getName() + " (" + recipe.getDifficulty() + ")"));
             }
         }
         
-        selectionPanel.add(recipeCombo);
-        mainPanel.add(selectionPanel);
-        mainPanel.add(Box.createVerticalStrut(10));
-
-        // Info label
-        JLabel infoLabel = new JLabel("ℹ️ You can only delete recipes you created");
-        infoLabel.setFont(new Font("Arial", Font.ITALIC, 11));
-        infoLabel.setForeground(Color.GRAY);
-        infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        mainPanel.add(infoLabel);
+        mainPanel.add(recipeCombo);
         mainPanel.add(Box.createVerticalStrut(15));
 
-        // Warning label
-        JLabel warningLabel = new JLabel("⚠️ This action cannot be undone!");
-        warningLabel.setFont(new Font("Arial", Font.BOLD, 12));
-        warningLabel.setForeground(new Color(231, 76, 60));
+        JLabel infoLabel = new JLabel("ℹYou can only delete recipes you created");
+        infoLabel.setFont(AppTheme.SMALL_FONT);
+        infoLabel.setForeground(AppTheme.TEXT_LIGHT);
+        infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        mainPanel.add(infoLabel);
+        mainPanel.add(Box.createVerticalStrut(10));
+
+        JLabel warningLabel = new JLabel("This action cannot be undone!");
+        warningLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        warningLabel.setForeground(AppTheme.DANGER);
         warningLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         mainPanel.add(warningLabel);
 
         add(mainPanel, BorderLayout.CENTER);
 
-        // ===== BUTTON PANEL =====
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        // Button Panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));
+        buttonPanel.setBackground(AppTheme.BACKGROUND);
 
         JButton cancelBtn = new JButton("Cancel");
+        AppTheme.styleSecondaryButton(cancelBtn);
         cancelBtn.addActionListener(e -> dispose());
 
         deleteBtn = new JButton("Delete Recipe");
-        deleteBtn.setBackground(new Color(231, 76, 60));
-        deleteBtn.setForeground(Color.WHITE);
-        deleteBtn.setFont(new Font("Arial", Font.BOLD, 12));
-        deleteBtn.setFocusPainted(false);
+        AppTheme.styleDangerButton(deleteBtn);
         deleteBtn.setEnabled(!userRecipes.isEmpty());
         deleteBtn.addActionListener(e -> confirmAndDelete());
 
         buttonPanel.add(cancelBtn);
         buttonPanel.add(deleteBtn);
-
         add(buttonPanel, BorderLayout.SOUTH);
 
         setVisible(true);
@@ -99,17 +102,13 @@ public class DeleteRecipeUI extends JDialog {
     private void confirmAndDelete() {
         RecipeItem selectedItem = (RecipeItem) recipeCombo.getSelectedItem();
         if (selectedItem == null || selectedItem.recipe == null) {
-            JOptionPane.showMessageDialog(this, 
-                    "Please select a recipe to delete.", 
-                    "No Recipe Selected", 
-                    JOptionPane.WARNING_MESSAGE);
+            UIUtils.showStyledMessage(this, "Please select a recipe to delete.", "No Recipe Selected", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         Recipe recipe = selectedItem.recipe;
         String recipeName = recipe.getName();
 
-        // Confirmation dialog
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Are you sure you want to delete \"" + recipeName + "\"?\nThis action cannot be undone.",
                 "Confirm Delete",
@@ -120,22 +119,15 @@ public class DeleteRecipeUI extends JDialog {
             boolean success = RecipeDAO.deleteRecipe(recipe.getRecipeId(), userId);
 
             if (success) {
-                JOptionPane.showMessageDialog(this,
-                        "\"" + recipeName + "\" has been deleted.",
-                        "Recipe Deleted",
-                        JOptionPane.INFORMATION_MESSAGE);
+                UIUtils.showStyledMessage(this, "\"" + recipeName + "\" has been deleted.", "Recipe Deleted", JOptionPane.INFORMATION_MESSAGE);
                 parent.refreshRecipeList();
                 dispose();
             } else {
-                JOptionPane.showMessageDialog(this,
-                        "Failed to delete recipe. Please try again.",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
+                UIUtils.showStyledMessage(this, "Failed to delete recipe. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
-    // Inner class for combo box items
     private static class RecipeItem {
         Recipe recipe;
         String displayText;

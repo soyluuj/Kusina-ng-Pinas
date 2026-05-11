@@ -17,51 +17,89 @@ public class HomePageUI extends JFrame {
 
         // Frame Setup
         setTitle("Kusina ng Pinas - Home");
-        setSize(800, 500);
+        setSize(950, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
+        getContentPane().setBackground(AppTheme.BACKGROUND);
 
-        // ===== TOP PANEL (Welcome + Logout) =====
-        JPanel topPanel = new JPanel(new BorderLayout());
+        // ===== HEADER PANEL =====
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(AppTheme.PRIMARY);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 
-        JLabel welcomeLabel = new JLabel("Welcome back, " + loggedInUsername + "!");
-        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        welcomeLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        topPanel.add(welcomeLabel, BorderLayout.WEST);
+        JPanel titlePanel = new JPanel();
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
+        titlePanel.setOpaque(false);
+
+        JLabel appTitle = new JLabel("Kusina ng Pinas");
+        appTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        appTitle.setForeground(Color.WHITE);
+        appTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel welcomeLabel = new JLabel("Welcome, " + loggedInUsername + "!");
+        welcomeLabel.setFont(AppTheme.BODY_FONT);
+        welcomeLabel.setForeground(new Color(255, 255, 255, 200));
+        welcomeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        titlePanel.add(appTitle);
+        titlePanel.add(Box.createVerticalStrut(3));
+        titlePanel.add(welcomeLabel);
+
+        headerPanel.add(titlePanel, BorderLayout.WEST);
 
         JButton logoutBtn = new JButton("Logout");
+        logoutBtn.setBackground(new Color(255, 255, 255, 30));
+        logoutBtn.setForeground(Color.WHITE);
+        logoutBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        logoutBtn.setFocusPainted(false);
+        logoutBtn.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 255, 255, 100), 1),
+            BorderFactory.createEmptyBorder(8, 15, 8, 15)
+        ));
+        logoutBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        logoutBtn.setOpaque(false);
+
+        logoutBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                logoutBtn.setBackground(new Color(255, 255, 255, 50));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                logoutBtn.setBackground(new Color(255, 255, 255, 30));
+            }
+        });
+
         logoutBtn.addActionListener(e -> logout());
-        topPanel.add(logoutBtn, BorderLayout.EAST);
+        headerPanel.add(logoutBtn, BorderLayout.EAST);
 
-        add(topPanel, BorderLayout.NORTH);
+        add(headerPanel, BorderLayout.NORTH);
 
-        // ===== CENTER PANEL (Holds both buttons and table) =====
+        // ===== CENTER PANEL =====
         JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
-        centerPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        centerPanel.setOpaque(false);
+        centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
-        // Button Panel (at the top of center area)
+        // Button Panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setOpaque(false);
 
-        JButton postRecipeBtn = new JButton("Post Recipe");
-        JButton updateRecipeBtn = new JButton("Update Recipe");
-        JButton deleteRecipeBtn = new JButton("Delete Recipe");
+        JButton postRecipeBtn = new JButton(" Post Recipe");
+        JButton updateRecipeBtn = new JButton(" Update Recipe");
+        JButton deleteRecipeBtn = new JButton(" Delete Recipe");
 
-        styleButton(postRecipeBtn, new Color(46, 204, 113));
-        styleButton(updateRecipeBtn, new Color(52, 152, 219));
-        styleButton(deleteRecipeBtn, new Color(231, 76, 60));
+        // Style Post button (Green/Success)
+        AppTheme.stylePrimaryButton(postRecipeBtn);
+        postRecipeBtn.setBackground(AppTheme.SUCCESS);
 
-        postRecipeBtn.addActionListener(e -> {
-            new PostRecipeUI(this, loggedInUserId);
-        });
+        // Style Update button (Blue/Secondary)
+        AppTheme.styleSecondaryButton(updateRecipeBtn);
 
-        updateRecipeBtn.addActionListener(e -> {
-            new UpdateRecipeUI(this, loggedInUserId);
-        });
+        // Style Delete button (Red/Danger)
+        AppTheme.styleDangerButton(deleteRecipeBtn);
 
-        deleteRecipeBtn.addActionListener(e -> {
-            new DeleteRecipeUI(this, loggedInUserId);
-        });
+        postRecipeBtn.addActionListener(e -> new PostRecipeUI(this, loggedInUserId));
+        updateRecipeBtn.addActionListener(e -> new UpdateRecipeUI(this, loggedInUserId));
+        deleteRecipeBtn.addActionListener(e -> new DeleteRecipeUI(this, loggedInUserId));
 
         buttonPanel.add(postRecipeBtn);
         buttonPanel.add(updateRecipeBtn);
@@ -69,22 +107,31 @@ public class HomePageUI extends JFrame {
 
         centerPanel.add(buttonPanel, BorderLayout.NORTH);
 
-        // Recipe Table Panel (in the center of center area)
+        // Table Panel
         JPanel tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setBorder(BorderFactory.createTitledBorder("All Recipes"));
+        tablePanel.setBackground(AppTheme.CARD_BG);
+        tablePanel.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)),
+            "All Recipes",
+            javax.swing.border.TitledBorder.LEFT,
+            javax.swing.border.TitledBorder.TOP,
+            AppTheme.HEADER_FONT,
+            AppTheme.TEXT_DARK
+        ));
 
-        // ===== ADD FILTER PANEL HERE (BEFORE THE TABLE) =====
+        // Filter Panel
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        filterPanel.setOpaque(false);
         filterPanel.add(new JLabel("Filter by Region:"));
         regionFilterCombo = new JComboBox<>();
+        regionFilterCombo.setFont(AppTheme.BODY_FONT);
         regionFilterCombo.addItem("All Regions");
         loadRegionFilter();
         regionFilterCombo.addActionListener(e -> filterRecipesByRegion());
         filterPanel.add(regionFilterCombo);
-        
         tablePanel.add(filterPanel, BorderLayout.NORTH);
 
-        //table
+        // Table
         String[] columns = {"Recipe Name", "Author", "Region", "Difficulty", "Prep Time", "Cook Time", "Date Added"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -94,44 +141,38 @@ public class HomePageUI extends JFrame {
         };
 
         recipeTable = new JTable(tableModel);
-        recipeTable.setRowHeight(25);
-        recipeTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        recipeTable.setRowHeight(30);
+        recipeTable.setFont(AppTheme.BODY_FONT);
+        recipeTable.getTableHeader().setFont(AppTheme.HEADER_FONT);
         recipeTable.getTableHeader().setBackground(new Color(240, 240, 240));
+        recipeTable.setSelectionBackground(new Color(255, 240, 240));
 
-        recipeTable.getColumnModel().getColumn(0).setPreferredWidth(180); // Recipe Name
-        recipeTable.getColumnModel().getColumn(1).setPreferredWidth(100); // Author
-        recipeTable.getColumnModel().getColumn(2).setPreferredWidth(120); // Region
-        recipeTable.getColumnModel().getColumn(3).setPreferredWidth(80);  // Difficulty
-        recipeTable.getColumnModel().getColumn(4).setPreferredWidth(70);  // Prep Time
-        recipeTable.getColumnModel().getColumn(5).setPreferredWidth(70);  // Cook Time
-        recipeTable.getColumnModel().getColumn(6).setPreferredWidth(90);  // Date Added
+        recipeTable.getColumnModel().getColumn(0).setPreferredWidth(180);
+        recipeTable.getColumnModel().getColumn(1).setPreferredWidth(100);
+        recipeTable.getColumnModel().getColumn(2).setPreferredWidth(120);
+        recipeTable.getColumnModel().getColumn(3).setPreferredWidth(80);
+        recipeTable.getColumnModel().getColumn(4).setPreferredWidth(70);
+        recipeTable.getColumnModel().getColumn(5).setPreferredWidth(70);
+        recipeTable.getColumnModel().getColumn(6).setPreferredWidth(90);
 
         JScrollPane scrollPane = new JScrollPane(recipeTable);
+        scrollPane.setPreferredSize(new Dimension(850, 300));
         tablePanel.add(scrollPane, BorderLayout.CENTER);
 
         centerPanel.add(tablePanel, BorderLayout.CENTER);
-
         add(centerPanel, BorderLayout.CENTER);
 
         // ===== STATUS BAR =====
         JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        statusPanel.setBackground(AppTheme.BACKGROUND);
         JLabel statusLabel = new JLabel("Ready");
-        statusLabel.setForeground(Color.GRAY);
+        statusLabel.setFont(AppTheme.SMALL_FONT);
+        statusLabel.setForeground(AppTheme.TEXT_LIGHT);
         statusPanel.add(statusLabel);
         add(statusPanel, BorderLayout.SOUTH);
 
-        // Load recipes
         refreshRecipeList();
-
         setVisible(true);
-    }
-
-    private void styleButton(JButton button, Color bgColor) {
-        button.setBackground(bgColor);
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("Arial", Font.BOLD, 12));
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
     }
 
     private void loadRegionFilter() {
@@ -148,15 +189,16 @@ public class HomePageUI extends JFrame {
         List<Recipe> allRecipes = RecipeDAO.getAllRecipes();
         
         for (Recipe recipe : allRecipes) {
-            if (selectedRegion.equals("All Regions") || recipe.getRegion().equals(selectedRegion)) {
+            if (selectedRegion == null || selectedRegion.equals("All Regions") || 
+                recipe.getRegion().equals(selectedRegion)) {
                 Object[] row = {
-                        recipe.getName(),
-                        recipe.getAuthorName(),
-                        recipe.getRegion(),
-                        recipe.getDifficulty(),
-                        recipe.getPrepTime() + " min",
-                        recipe.getCookTime() + " min",
-                        recipe.getDateCreated()
+                    recipe.getName(),
+                    recipe.getAuthorName(),
+                    recipe.getRegion(),
+                    recipe.getDifficulty(),
+                    recipe.getPrepTime() + " min",
+                    recipe.getCookTime() + " min",
+                    recipe.getDateCreated()
                 };
                 tableModel.addRow(row);
             }
@@ -164,7 +206,7 @@ public class HomePageUI extends JFrame {
     }
 
     public void refreshRecipeList() {
-        filterRecipesByRegion(); // This will refresh with current filter
+        filterRecipesByRegion();
     }
 
     private void logout() {
